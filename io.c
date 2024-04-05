@@ -17,6 +17,59 @@ char* separa(char* linha){
     return linha;
 }
 
+char* check_type(char* word){
+    char *type = "S";
+    
+    if(atof(word)){
+        type = "N";
+    }
+
+    return type;
+}
+
+int count_columns_and_define_types(FILE *file, char **types){
+    char *keeper;
+    char buffer[LINE_SIZE];
+    int column_qtd = 1;
+
+    keeper = separa(fgets(buffer, 1024, file));
+    while(keeper != NULL){
+        keeper = separa(keeper + strlen(keeper) + 1);
+        column_qtd++;
+    }
+
+
+    types = (char **) malloc(sizeof(char)*column_qtd);
+
+    int i = 0;
+    keeper = separa(fgets(buffer, 1024, file));
+    types[i] = check_type(keeper);
+
+    while(keeper != NULL){
+        i++;
+        keeper = separa(keeper + strlen(keeper) + 1);
+        if(keeper){
+            types[i] = check_type(keeper);
+        }
+    }
+
+    rewind(file);
+    return column_qtd;
+}
+
+int count_lines(FILE *file){
+    char buffer[LINE_SIZE], *result;
+    int qtt = 0;
+
+    while (!feof(file)){
+        result = fgets(buffer, LINE_SIZE, file);
+        qtt++;
+    }
+    
+    rewind(file);
+    return qtt;
+}
+
 void add_espaco(char* word, int qtd_espacos){
     for(int i = 0; i < qtd_espacos; i++){
         strcat(word, " ");
@@ -51,6 +104,24 @@ char* formata(char **formatacao, char* linha, unsigned short *maiores){
         }
 
         formatacao[i++] = word;
-        keeper = separa(keeper + strlen(keeper) +1 );
+        keeper = separa(keeper + strlen(keeper) + 1);
     }
+}
+
+arq_csv* abrir(char* file_path){
+    FILE *file_opened;
+    arq_csv file_object;
+    char *keeper;
+    char buffer[LINE_SIZE];
+
+    if(!file_path){
+        printf("Caminho de arquivo vazio\n");
+        return NULL;
+    }
+
+    file_opened = fopen(file_path, "r");
+
+    file_object.arquivo = file_opened;
+    file_object.colunas = count_columns_and_define_types(file_object.arquivo, file_object.tipos);
+    file_object.linhas = count_lines(file_opened);
 }
