@@ -57,6 +57,30 @@ int count_columns_and_define_types(FILE *file, char **types){
     return column_qtd;
 }
 
+void find_biggest_word_by_column(arq_csv *file){
+    char buffer[LINE_SIZE], *line, *keeper;
+    unsigned short* biggest;
+    int i = 0;
+    
+
+    while (!feof(file->arquivo)){
+        line = fgets(buffer, LINE_SIZE, file);
+        i = 0;
+
+        while((keeper = separa(line)) != NULL){
+            
+            if(strlen(keeper) >= biggest[i]){
+                biggest[i] = strlen(keeper);
+            }
+            
+            i++;
+            keeper = separa(keeper + strlen(keeper) + 1);
+        }
+    }
+
+    file->tam_colunas = biggest;
+}
+
 int count_lines(FILE *file){
     char buffer[LINE_SIZE], *result;
     int qtt = 0;
@@ -124,4 +148,9 @@ arq_csv* abrir(char* file_path){
     file_object.arquivo = file_opened;
     file_object.colunas = count_columns_and_define_types(file_object.arquivo, file_object.tipos);
     file_object.linhas = count_lines(file_opened);
+    find_biggest_word_by_column(&file_object);
+}
+
+void sumario(arq_csv * file){
+    
 }

@@ -12,7 +12,6 @@ typedef struct arq_csv {
     unsigned long linhas;
     unsigned long colunas;
     char **tipos;
-    long quintopenultima;
     unsigned short *tam_colunas;
 } arq_csv;
 
