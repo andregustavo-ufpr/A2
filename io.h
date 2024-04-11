@@ -13,6 +13,7 @@ typedef struct arq_csv {
     unsigned long colunas;
     char **tipos;
     unsigned short *tam_colunas;
+    char **dados;
 } arq_csv;
 
 char* separa(char* linha);

@@ -94,6 +94,7 @@ void find_biggest_word_by_column(arq_csv *file){
         }
     }
 
+    rewind(file->arquivo);
     file->tam_colunas = biggest;
 }
 
@@ -125,7 +126,6 @@ char* formata(char **formatacao, char* linha, unsigned short *maiores){
     
     while(keeper){
         tam_palavra = strlen(keeper);
-
         num_espaco = maiores[i] - tam_palavra;
 
         word = malloc(maiores[i] + 1);
@@ -148,6 +148,29 @@ char* formata(char **formatacao, char* linha, unsigned short *maiores){
     }
 }
 
+void save_all_data(arq_csv *file){
+    char buffer[LINE_SIZE], *line, *keeper, **data_matrix;
+    unsigned short* biggest;
+    int row = 0, col = 0;
+    
+    data_matrix = (char **) malloc(sizeof(char)*file->colunas*file->linhas);
+
+    while (!feof(file->arquivo)){
+        line = fgets(buffer, LINE_SIZE, file);
+        row = 0;
+
+        while((keeper = separa(line)) != NULL){
+            data_matrix[row][col] = keeper;
+            
+            col++;
+            keeper = separa(keeper + strlen(keeper) + 1);
+        }
+    }
+
+    rewind(file->arquivo);
+    file->dados = data_matrix;
+}
+
 arq_csv* abrir(char* file_path){
     FILE *file_opened;
     arq_csv file_object;
@@ -165,6 +188,7 @@ arq_csv* abrir(char* file_path){
     file_object.colunas = count_columns_and_define_types(file_object.arquivo, file_object.tipos);
     file_object.linhas = count_lines(file_opened);
     find_biggest_word_by_column(&file_object);
+    save_all_data(&file_object);
 }
 
 void sumario(arq_csv *file){
