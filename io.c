@@ -54,7 +54,7 @@ int count_columns_and_define_types(FILE *file, char **types){
     }
 
     rewind(file);
-    return column_qtd;
+    return column_qtd +1;
 }
 
 int column_position(arq_csv *file, char *title){
@@ -81,8 +81,10 @@ void find_biggest_word_by_column(arq_csv *file){
 
     while (!feof(file->arquivo)){
         line = fgets(buffer, LINE_SIZE, file);
-        i = 0;
-
+        
+        i = 1;
+        biggest[0] = log10(file->linhas) +1;
+        
         while((keeper = separa(line)) != NULL){
             
             if(strlen(keeper) >= biggest[i]){
@@ -111,8 +113,8 @@ int count_lines(FILE *file){
     return qtt;
 }
 
-void add_espaco(char* word, int qtd_espacos){
-    for(int i = 0; i < qtd_espacos; i++){
+void add_espaco(char* word, int space_qtt){
+    for(int i = 0; i < space_qtt; i++){
         strcat(word, " ");
     }
 }
@@ -151,7 +153,7 @@ char* formata(char **formatacao, char* linha, unsigned short *maiores){
 void save_all_data(arq_csv *file){
     char buffer[LINE_SIZE], *line, *keeper, **data_matrix;
     unsigned short* biggest;
-    int row = 0, col = 0;
+    int row = 0, col = 1;
     
     data_matrix = (char **) malloc(sizeof(char)*file->colunas*file->linhas);
 
@@ -159,6 +161,7 @@ void save_all_data(arq_csv *file){
         line = fgets(buffer, LINE_SIZE, file);
         row = 0;
 
+        data_matrix[row][0] = row;
         while((keeper = separa(line)) != NULL){
             data_matrix[row][col] = keeper;
             
@@ -206,4 +209,50 @@ void sumario(arq_csv *file){
 
     printf("%d variaveis encontradas\n\n", i);
     rewind(file->arquivo);
+}
+
+void mostrar(arq_csv *file){
+    int i=0;
+    char *keeper, *blank = "";
+    char buffer[LINE_SIZE];
+    
+    // Printando os headers do arquivo
+    add_espaco(blank, file->tam_colunas[i]);
+    printf("%s ", blank);
+
+    keeper = separa(fgets(buffer, 1024, file));
+    while(keeper != NULL){
+        add_espaco(keeper, file->tam_colunas[i] - strlen(keeper));
+        printf("%s ", keeper);
+        i++;
+        keeper = separa(keeper + strlen(keeper) + 1);
+    }
+
+    //Printando da linha 0 -> 5
+    for (i = 0; i < 6; i++){
+        for(int j = 0; j < file->colunas; j++){
+            char *data= file->dados[i][j];
+            
+            add_espaco(data, file->tam_colunas[i] - strlen(data));
+            printf("%s", data);
+        }
+    }
+
+    //Printando ...
+    for(int i = 0; i < file->colunas; i++){
+        char *ellipsis= "...";
+        
+        add_espaco(ellipsis, file->tam_colunas[i] - strlen(ellipsis));
+        printf("%s ", ellipsis);
+    }
+
+    //Printando da linha (linhas -4) -> (linhas)
+    for (i = file->linhas - 4; i > file->linhas; i++){
+        for(int j = 0; j < file->colunas; j++){
+            char *data= file->dados[i][j];
+            
+            add_espaco(data, file->tam_colunas[i] - strlen(data));
+            printf("%s", data);
+        }
+    }
 }
