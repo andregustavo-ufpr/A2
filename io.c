@@ -5,14 +5,14 @@ char* separa(char* linha){
     
     if(!linha) return NULL;
     
-    pos_virgula = strchr(linha, ',');
-    
+    pos_virgula = strchr(linha, ",");
+
     if(!pos_virgula){
         if(strlen(linha)) return linha;
         
         return NULL;
     }
-    pos_virgula = NULL;
+    *pos_virgula = NULL;
     
     return linha;
 }
@@ -95,8 +95,9 @@ void find_biggest_word_by_column(arq_csv *file){
         
         i = 1;
         biggest[0] = number_of_digits(file->linhas);
+        keeper = separa(line);
         
-        while((keeper = separa(line)) != NULL){
+        while((keeper) != NULL){
             
             if(strlen(keeper) >= biggest[i]){
                 biggest[i] = strlen(keeper);
