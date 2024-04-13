@@ -12,7 +12,7 @@ char* separa(char* linha){
         
         return NULL;
     }
-    *pos_virgula = NULL;
+    *pos_virgula = (char) NULL;
     
     return linha;
 }
@@ -63,7 +63,7 @@ int column_position(arq_csv *file, char *title){
     char *keeper;
     char buffer[LINE_SIZE];
     
-    keeper = separa(fgets(buffer, 1024, file));
+    keeper = separa(fgets(buffer, 1024, file->arquivo));
     while(keeper != NULL && (strcmp(keeper, title) != 0)){
         pos++;
         keeper = separa(keeper + strlen(keeper) + 1);
@@ -73,6 +73,17 @@ int column_position(arq_csv *file, char *title){
     return pos;
 }
 
+int number_of_digits(int n)  
+{  
+    int counter=0; // variable declaration  
+    while(n!=0)  
+    {  
+        n=n/10;  
+        counter++;  
+    }  
+    return counter;  
+} 
+
 void find_biggest_word_by_column(arq_csv *file){
     char buffer[LINE_SIZE], *line, *keeper;
     unsigned short* biggest;
@@ -80,10 +91,10 @@ void find_biggest_word_by_column(arq_csv *file){
     
 
     while (!feof(file->arquivo)){
-        line = fgets(buffer, LINE_SIZE, file);
+        line = fgets(buffer, LINE_SIZE, file->arquivo);
         
         i = 1;
-        biggest[0] = log10(file->linhas) +1;
+        biggest[0] = number_of_digits(file->linhas);
         
         while((keeper = separa(line)) != NULL){
             
@@ -158,12 +169,12 @@ void save_all_data(arq_csv *file){
     data_matrix = (char **) malloc(sizeof(char)*file->colunas*file->linhas);
 
     while (!feof(file->arquivo)){
-        line = fgets(buffer, LINE_SIZE, file);
+        line = fgets(buffer, LINE_SIZE, file->arquivo);
         row = 0;
 
         data_matrix[row][0] = row;
         while((keeper = separa(line)) != NULL){
-            data_matrix[row][col] = keeper;
+            data_matrix[row][col] = *keeper;
             
             col++;
             keeper = separa(keeper + strlen(keeper) + 1);
@@ -198,7 +209,7 @@ void sumario(arq_csv *file){
     int i=0;
     char *header, buffer[LINE_SIZE];
     
-    header = separa(fgets(buffer, 1024, file));
+    header = separa(fgets(buffer, 1024, file->arquivo));
     while(header != NULL){
         
         printf("%s [%s] \n", header, file->tipos[i]);
@@ -220,7 +231,7 @@ void mostrar(arq_csv *file){
     add_espaco(blank, file->tam_colunas[i]);
     printf("%s ", blank);
 
-    keeper = separa(fgets(buffer, 1024, file));
+    keeper = separa(fgets(buffer, 1024, file->arquivo));
     while(keeper != NULL){
         add_espaco(keeper, file->tam_colunas[i] - strlen(keeper));
         printf("%s ", keeper);
@@ -231,7 +242,7 @@ void mostrar(arq_csv *file){
     //Printando da linha 0 -> 5
     for (i = 0; i < 6; i++){
         for(int j = 0; j < file->colunas; j++){
-            char *data= file->dados[i][j];
+            char *data= &(file->dados[i][j]);
             
             add_espaco(data, file->tam_colunas[i] - strlen(data));
             printf("%s", data);
