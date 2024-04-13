@@ -42,9 +42,7 @@ int main(int argc, char **argv){
 
         if(menu != 9){
             printf("\nPressione ENTER para continuar.\n");
-            while(getchar() != "\n"){
-                getchar();
-            }
+            getchar();
         }
     }
 

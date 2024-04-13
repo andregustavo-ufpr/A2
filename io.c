@@ -12,7 +12,7 @@ char* separa(char* linha){
         
         return NULL;
     }
-    *pos_virgula = (char) NULL;
+    pos_virgula = NULL;
     
     return linha;
 }
@@ -260,7 +260,7 @@ void mostrar(arq_csv *file){
     //Printando da linha (linhas -4) -> (linhas)
     for (i = file->linhas - 4; i > file->linhas; i++){
         for(int j = 0; j < file->colunas; j++){
-            char *data= file->dados[i][j];
+            char *data= &(file->dados[i][j]);
             
             add_espaco(data, file->tam_colunas[i] - strlen(data));
             printf("%s", data);
