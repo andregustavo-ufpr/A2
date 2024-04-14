@@ -84,7 +84,7 @@ int number_of_digits(int n)
 void find_biggest_word_by_column(arq_csv *file){
     char buffer[LINE_SIZE], *line = NULL, *keeper;
     unsigned short* biggest;
-    int i = 0;
+    int i = 0, line_counter = 0;
     
     biggest = (short *) malloc(sizeof(short)*file->linhas);
 
@@ -98,8 +98,12 @@ void find_biggest_word_by_column(arq_csv *file){
             keeper = separa(line);
 
             while(keeper != NULL){
-            
-                if(!biggest[i] || strlen(keeper) >= biggest[i]){
+                
+                if(line_counter == 0){
+                    biggest[i] = 0;
+                }
+                
+                if(strlen(keeper) >= biggest[i]){
                     biggest[i] = strlen(keeper);
                 }
             
@@ -107,6 +111,7 @@ void find_biggest_word_by_column(arq_csv *file){
                 keeper = separa(keeper + strlen(keeper) + 1);
             }
         }
+        line_counter++;
     }
 
     rewind(file->arquivo);
