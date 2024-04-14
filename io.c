@@ -12,7 +12,7 @@ char* separa(char* linha){
         
         return NULL;
     }
-    *pos_virgula = NULL;
+    *pos_virgula = '\0';
     
     return str;
 }
