@@ -1,17 +1,14 @@
 #include "io.h"
 
 char* separa(char* linha){
-    char *pos_virgula, str = strdup(linha);
+    char *pos_virgula, *str = strdup(linha);
     
     if(!linha) return NULL;
     
     pos_virgula = strchr(str, ',');
 
-    if(!pos_virgula){
-        if(strlen(str)) return str;
-        
-        return NULL;
-    }
+    if(pos_virgula == NULL) return NULL;
+    
     *pos_virgula = '\0';
     
     return str;
@@ -37,9 +34,8 @@ int count_columns_and_define_types(FILE *file, char **types){
         keeper = separa(keeper + strlen(keeper) + 1);
         column_qtd++;
     }
-    printf("%d", column_qtd);
 
-    types = (char **) malloc(sizeof(char)*column_qtd);
+    types = (char **) malloc(sizeof(char *)*column_qtd);
 
     int i = 0;
     keeper = separa(fgets(buffer, 1024, file));
@@ -48,7 +44,8 @@ int count_columns_and_define_types(FILE *file, char **types){
     while(keeper != NULL){
         i++;
         keeper = separa(keeper + strlen(keeper) + 1);
-        if(keeper){
+    
+        if(keeper != NULL){
             types[i] = check_type(keeper);
         }
     }
@@ -85,31 +82,36 @@ int number_of_digits(int n)
 } 
 
 void find_biggest_word_by_column(arq_csv *file){
-    char buffer[LINE_SIZE], *line, *keeper;
+    char buffer[LINE_SIZE], *line = NULL, *keeper;
     unsigned short* biggest;
     int i = 0;
     
+    biggest = (short *) malloc(sizeof(short)*file->linhas);
 
-    while (!feof(file->arquivo)){
+    while(!feof(file->arquivo)){
+
         line = fgets(buffer, LINE_SIZE, file->arquivo);
-        
-        i = 1;
-        biggest[0] = number_of_digits(file->linhas);
-        keeper = separa(line);
-        
-        while((keeper) != NULL){
+        if(line != NULL){
+
+            i = 1;
+            biggest[0] = number_of_digits(file->linhas);
+            keeper = separa(line);
+
+            while(keeper != NULL){
             
-            if(strlen(keeper) >= biggest[i]){
-                biggest[i] = strlen(keeper);
+                if(!biggest[i] || strlen(keeper) >= biggest[i]){
+                    biggest[i] = strlen(keeper);
+                }
+            
+                i++;
+                keeper = separa(keeper + strlen(keeper) + 1);
             }
-            
-            i++;
-            keeper = separa(keeper + strlen(keeper) + 1);
         }
     }
 
     rewind(file->arquivo);
     file->tam_colunas = biggest;
+    free(biggest);
 }
 
 int count_lines(FILE *file){
@@ -167,7 +169,7 @@ void save_all_data(arq_csv *file){
     unsigned short* biggest;
     int row = 0, col = 1;
     
-    data_matrix = (char **) malloc(sizeof(char)*file->colunas*file->linhas);
+    data_matrix = (char **) malloc(sizeof(char *)*file->colunas*file->linhas);
 
     while (!feof(file->arquivo)){
         line = fgets(buffer, LINE_SIZE, file->arquivo);
