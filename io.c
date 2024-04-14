@@ -1,20 +1,20 @@
 #include "io.h"
 
 char* separa(char* linha){
-    char *pos_virgula;
+    char *pos_virgula, str = strdup(linha);
     
     if(!linha) return NULL;
     
-    pos_virgula = strchr(linha, ",");
+    pos_virgula = strchr(str, ',');
 
     if(!pos_virgula){
-        if(strlen(linha)) return linha;
+        if(strlen(str)) return str;
         
         return NULL;
     }
     *pos_virgula = NULL;
     
-    return linha;
+    return str;
 }
 
 char* check_type(char* word){
@@ -37,7 +37,7 @@ int count_columns_and_define_types(FILE *file, char **types){
         keeper = separa(keeper + strlen(keeper) + 1);
         column_qtd++;
     }
-
+    printf("%d", column_qtd);
 
     types = (char **) malloc(sizeof(char)*column_qtd);
 
