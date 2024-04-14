@@ -24,7 +24,7 @@ char* check_type(char* word){
     return type;
 }
 
-int count_columns_and_define_types(FILE *file, char **types){
+int count_columns(FILE *file){
     char *keeper;
     char buffer[LINE_SIZE];
     int column_qtd = 1;
@@ -34,11 +34,17 @@ int count_columns_and_define_types(FILE *file, char **types){
         keeper = separa(keeper + strlen(keeper) + 1);
         column_qtd++;
     }
+    rewind(file);
+    return column_qtd +1;
+}
 
-    types = (char **) malloc(sizeof(char *)*column_qtd);
-
+void define_types(char **types, FILE *file){
     int i = 0;
+    char *keeper, buffer[LINE_SIZE];
+
+    fgets(buffer, 1024, file);
     keeper = separa(fgets(buffer, 1024, file));
+    
     types[i] = check_type(keeper);
 
     while(keeper != NULL){
@@ -49,9 +55,8 @@ int count_columns_and_define_types(FILE *file, char **types){
             types[i] = check_type(keeper);
         }
     }
-
+    
     rewind(file);
-    return column_qtd +1;
 }
 
 int column_position(arq_csv *file, char *title){
@@ -116,7 +121,6 @@ void find_biggest_word_by_column(arq_csv *file){
 
     rewind(file->arquivo);
     file->tam_colunas = biggest;
-    free(biggest);
 }
 
 int count_lines(FILE *file){
@@ -129,16 +133,21 @@ int count_lines(FILE *file){
     }
     
     rewind(file);
-    return qtt;
+   return qtt;
 }
 
-void add_espaco(char* word, int space_qtt){
+char* add_espaco(char* word, int space_qtt){
+    printf("%s palavra\n", word);
+    char *new_word = strdup(word);
+    
     for(int i = 0; i < space_qtt; i++){
-        strcat(word, " ");
+        strcat(new_word, " ");
     }
+
+    return new_word;
 }
 
-char* formata(char **formatacao, char* linha, unsigned short *maiores){
+void formata(char **formatacao, char* linha, unsigned short *maiores){
     int i = 0;
     unsigned short tam_palavra = 0, num_espaco;
     char *keeper, *word;
@@ -152,7 +161,7 @@ char* formata(char **formatacao, char* linha, unsigned short *maiores){
         word = malloc(maiores[i] + 1);
         if(!word){
             printf("Erro na alocação\n");
-            return NULL;
+            break;
         }
 
         if((tam_palavra == 0) || (strcmp(keeper, "\n")) == 0){
@@ -167,16 +176,17 @@ char* formata(char **formatacao, char* linha, unsigned short *maiores){
         formatacao[i++] = word;
         keeper = separa(keeper + strlen(keeper) + 1);
     }
+
 }
 
 void save_all_data(arq_csv *file){
-    char buffer[LINE_SIZE], *line, *keeper, **data_matrix;
+    char buffer[LINE_SIZE], *line, *keeper, data_matrix[file->linhas][file->colunas];
     unsigned short* biggest;
     int row = 0, col = 1;
     
-    data_matrix = (char **) malloc(sizeof(char *)*file->colunas*file->linhas);
-
-    while (!feof(file->arquivo)){
+    //data_matrix = (char **) malloc(sizeof(char *)*file->colunas*file->linhas);
+       
+    while (feof(file->arquivo) != 0){
         line = fgets(buffer, LINE_SIZE, file->arquivo);
         row = 0;
 
@@ -190,12 +200,13 @@ void save_all_data(arq_csv *file){
     }
 
     rewind(file->arquivo);
-    file->dados = data_matrix;
+    fseek(file->arquivo, 0, SEEK_SET);
+    file->dados =(char *) &data_matrix;
 }
 
 arq_csv* abrir(char* file_path){
     FILE *file_opened;
-    arq_csv file_object;
+    arq_csv* file_object;
     char *keeper;
     char buffer[LINE_SIZE];
 
@@ -205,54 +216,67 @@ arq_csv* abrir(char* file_path){
     }
 
     file_opened = fopen(file_path, "r");
+    if(!file_opened){
+        printf("Falha ao abrir o arquivo");
+        return NULL;
+    }
 
-    file_object.arquivo = file_opened;
-    file_object.colunas = count_columns_and_define_types(file_object.arquivo, file_object.tipos);
-    file_object.linhas = count_lines(file_opened);
-    find_biggest_word_by_column(&file_object);
-    save_all_data(&file_object);
+    file_object = (arq_csv *) malloc(sizeof(arq_csv));
+
+    file_object->arquivo = file_opened;
+    file_object->colunas = count_columns(file_object->arquivo);
+
+    file_object->tipos = (char **) malloc(sizeof(char *)*file_object->colunas);
+    define_types(file_object->tipos, file_object->arquivo);
+    
+    file_object->linhas = count_lines(file_opened);
+    file_object->dados = malloc(sizeof(char)*file_object->linhas*file_object->colunas); 
+    
+    find_biggest_word_by_column(file_object);
+    save_all_data(file_object);
+
+    return file_object;
 }
 
 void sumario(arq_csv *file){
     int i=0;
-    char *header, buffer[LINE_SIZE];
+    char *header, *line;
+    char buffer[LINE_SIZE];
     
-    header = separa(fgets(buffer, 1024, file->arquivo));
-    while(header != NULL){
+    if(file->arquivo){
+    
+        header = separa(fgets(buffer, LINE_SIZE, file->arquivo));
         
-        printf("%s [%s] \n", header, file->tipos[i]);
+        while(header != NULL){
+            printf("%s [%s] \n", header, file->tipos[i]);
 
-        i++;
-        header = separa(header + strlen(header) + 1);
+            i++;
+            header = separa(header + strlen(header) + 1);
+        }
+
+        printf("%d variaveis encontradas\n\n", i);
+        rewind(file->arquivo);
     }
-
-    printf("%d variaveis encontradas\n\n", i);
-    rewind(file->arquivo);
 }
 
 void mostrar(arq_csv *file){
     int i=0;
-    char *keeper, *blank = "";
+    char *keeper, *blank = "", **format;
     char buffer[LINE_SIZE];
     
     // Printando os headers do arquivo
-    add_espaco(blank, file->tam_colunas[i]);
-    printf("%s ", blank);
+    printf("%d colunas", file->tam_colunas[i]);
+    blank = add_espaco(blank, file->tam_colunas[i]);
+    printf("%s buraco", blank);
 
-    keeper = separa(fgets(buffer, 1024, file->arquivo));
-    while(keeper != NULL){
-        add_espaco(keeper, file->tam_colunas[i] - strlen(keeper));
-        printf("%s ", keeper);
-        i++;
-        keeper = separa(keeper + strlen(keeper) + 1);
-    }
+    formata(format, fgets(buffer, 1024, file->arquivo), file->tam_colunas); 
 
     //Printando da linha 0 -> 5
     for (i = 0; i < 6; i++){
         for(int j = 0; j < file->colunas; j++){
-            char *data= &(file->dados[i][j]);
+            char *data= &file->dados[i*file->colunas + j];
             
-            add_espaco(data, file->tam_colunas[i] - strlen(data));
+            data = add_espaco(data, file->tam_colunas[i] - strlen(data));
             printf("%s", data);
         }
     }
@@ -261,16 +285,16 @@ void mostrar(arq_csv *file){
     for(int i = 0; i < file->colunas; i++){
         char *ellipsis= "...";
         
-        add_espaco(ellipsis, file->tam_colunas[i] - strlen(ellipsis));
+        ellipsis = add_espaco(ellipsis, file->tam_colunas[i] - strlen(ellipsis));
         printf("%s ", ellipsis);
     }
 
     //Printando da linha (linhas -4) -> (linhas)
     for (i = file->linhas - 4; i > file->linhas; i++){
         for(int j = 0; j < file->colunas; j++){
-            char *data= &(file->dados[i][j]);
+            char *data= &file->dados[i*file->colunas + j];
             
-            add_espaco(data, file->tam_colunas[i] - strlen(data));
+            data = add_espaco(data, file->tam_colunas[i] - strlen(data));
             printf("%s", data);
         }
     }

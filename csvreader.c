@@ -13,14 +13,14 @@ printf("9) Fim\n");
 }
 
 int main(int argc, char **argv){
-    int menu;
-    char *entry = 0;
+    int menu = 0;
+    char *entry = 0, buffer[LINE_SIZE];
     arq_csv *file;
 
     entry = strdup(argv[1]);
     file = abrir(entry);
-
-    if(!file){
+    
+    if(file == NULL || !file->arquivo){
         return 0;
     }
 

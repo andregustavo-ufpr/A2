@@ -14,11 +14,11 @@ typedef struct arq_csv {
     unsigned long colunas;
     char **tipos;
     unsigned short *tam_colunas;
-    char **dados;
+    char *dados;
 } arq_csv;
 
 char* separa(char* linha);
-char* formata(char** formatacao, char* linha, unsigned short *maiores);
+void formata(char** formatacao, char* linha, unsigned short *maiores);
 
 arq_csv* verifica(arq_csv* csv);
 
@@ -33,7 +33,7 @@ arq_csv* fechar(arq_csv* file);
 
 //Funcoes auxiliares
 int column_position(arq_csv *file, char *title);
-void add_espaco(char *word, int space_qtt);
+char *add_espaco(char *word, int space_qtt);
 
 //Funcoes para o leitor csv
 void sumario(arq_csv* file);
