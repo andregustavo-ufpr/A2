@@ -46,5 +46,8 @@ int main(int argc, char **argv){
         }
     }
 
-    
+   file = fechar(file);
+   free(file);
+
+   return 0;
 }
